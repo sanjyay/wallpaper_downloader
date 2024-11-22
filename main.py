@@ -3,18 +3,18 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import json
+import time
 #creating folder to save the wallpapers
-def folder():
-    path="wallpapers"
-    #checks if the folder already exists
-    if os.path.exists(path)==False:
-        os.mkdir(path)
-        print(f'{path} folder created')
-    else:
-        print(f'{path} folder already exists')
+
+path="wallpapers"
+#checks if the folder already exists
+if os.path.exists(path)==False:
+    os.mkdir(path)
+    print(f'{path} folder created')
+else:
+    print(f'{path} folder already exists')
 
 def main():
-    #folder()
     while True:
         word=input('Enter what type of wallpaper you want (keyword): ')
         if word.isdigit()==True:
@@ -25,29 +25,36 @@ def main():
     URL=f"https://wallhaven.cc/search?q={word}"
     r=requests.get(URL)
     soup=BeautifulSoup(r.content,'html5lib')
+    img_names=[]
     img_url=[]
-    #img_tags=[]
+    wall_url_ls=[]
     img_tags=soup.find_all('img',alt='loading')
-    #print(img_tags)
     for i in range(len(img_tags)):
-        #for j in range(len(img_tags)):
         split_url=str(img_tags[i]).replace('"','').split()[3].split('=')[1]
-        print('split_url',split_url)
-        img_url.append(split_url)
-        print('append done')
-        #split=str(split).split()
-        #img_url.append(split.replace('data-src=',''))
-        #img_url.append(split[3])
-        #print(split)
-    print(img_url[1])
-    # print(img_url)
-    #     img_link=img_tags.find('data-src')
-    #     img_url.append(img_link)
-    # print(img_tags)
-    #print(img_url)
-    # print(str(img_tags[1]).split('https'))    
-   
-    #print(str(img_tags[1]).split('https'))    
-    
+        img_names.append(str(split_url).replace('.jpg','').split('/')[-1])
+
+    for i in img_names:
+        res=requests.get(f'https://wallhaven.cc/w/{i}')
+        soup=BeautifulSoup(res.content,'html5lib')
+        wall_url_find=soup.find_all('img',id="wallpaper")
+        if wall_url_find:
+            wall_url=str(wall_url_find).split('"')[-2]
+            wall_url_ls.append(wall_url)
+        else:
+            continue
+        
+    for i in wall_url_ls:
+        response=requests.get(i)
+        filename = os.path.basename(i)
+        folder='wallpapers'
+        file_path=os.path.join(folder,filename)
+        if response.status_code==200:
+            with open(file_path,'wb') as file:
+                file.write(response.content)
+                time.sleep(5)
+
+        else:
+            print('response 200 not received')
+
 main()
 

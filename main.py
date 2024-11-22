@@ -5,7 +5,6 @@ import re
 import json
 import time
 #creating folder to save the wallpapers
-
 path="wallpapers"
 #checks if the folder already exists
 if os.path.exists(path)==False:
@@ -14,7 +13,8 @@ if os.path.exists(path)==False:
 else:
     print(f'{path} folder already exists')
 
-def main():
+def search():
+
     while True:
         word=input('Enter what type of wallpaper you want (keyword): ')
         if word.isdigit()==True:
@@ -22,6 +22,7 @@ def main():
         else:
             print(word)
             break
+    
     URL=f"https://wallhaven.cc/search?q={word}"
     r=requests.get(URL)
     soup=BeautifulSoup(r.content,'html5lib')
@@ -42,19 +43,30 @@ def main():
             wall_url_ls.append(wall_url)
         else:
             continue
-        
+    #Saves the wallpapers
     for i in wall_url_ls:
         response=requests.get(i)
-        filename = os.path.basename(i)
+        filename = word+os.path.basename(i)
         folder='wallpapers'
         file_path=os.path.join(folder,filename)
         if response.status_code==200:
+            print("Downloading : %s " % (filename))
             with open(file_path,'wb') as file:
                 file.write(response.content)
                 time.sleep(5)
-
         else:
             print('response 200 not received')
+
+def main():
+    print('How do you want to get your wallpapers?')
+    while True:
+        ask=int(input('Press 1 for direct search :'))
+        if ask==1:    
+            search()
+            break
+        else:
+            print('Enter valid input')    
+        
 
 main()
 
